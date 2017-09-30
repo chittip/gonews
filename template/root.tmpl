@@ -5,18 +5,26 @@
          <title>Go News</title>
          <meta charset="UTF-8">
          <meta name="viewport" content="width=device-width, initial-scale=1">
+         <link href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.13/semantic.min.css" rel="stylesheet">
          <link href="/-/css/style.css" rel="stylesheet">
-         {{template "root-style"}}
+         {{template "root-style" .}}
      </head>
      <body>
          <div>
              NavBar
         </div>
-        {{template "root-body"}}
+        <div class="ui container">
+            {{template "root-body" .}}
+        </div>
         <div>
             Footer
         </div>
-        {{template "root-script"}}
+        <script
+			  src="https://code.jquery.com/jquery-3.2.1.min.js"
+			  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+			  crossorigin="anonymous"></script>		
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.13/semantic.min.js"></script>
+        {{template "root-script" .}}
      </body>
  </html>
  {{end}}
