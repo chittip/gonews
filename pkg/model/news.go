@@ -3,18 +3,21 @@ package model
 import (
 	"crypto/rand"
 	"encoding/base64"
+	"fmt"
 	"sync"
 	"time"
+
+	"gopkg.in/mgo.v2/bson"
 )
 
 // News type
 type News struct {
-	ID        string
+	ID        bson.ObjectId `bson:"_id"`
 	Title     string
 	Image     string
 	Detail    string
-	CreateAt  time.Time
-	UpdatedAt time.Time
+	CreateAt  time.Time `bson:"createAt"`
+	UpdatedAt time.Time `bson:"updateAt"`
 }
 
 var (
@@ -30,47 +33,59 @@ func generateID() string {
 }
 
 // CreateNews ..
-func CreateNews(news News) {
-	news.ID = generateID()
+func CreateNews(news News) error {
+	news.ID = bson.NewObjectId()
 	news.CreateAt = time.Now()
 	news.UpdatedAt = news.CreateAt
-	mutexNews.Lock()
-	defer mutexNews.Unlock()
-	newsStorage = append(newsStorage, news)
-}
 
-// ListNews ...
-func ListNews() []*News {
-	mutexNews.RLock()
-	defer mutexNews.RUnlock()
-	r := make([]*News, len(newsStorage))
-	for i := range newsStorage {
-		n := newsStorage[i]
-		r[i] = &n
-	}
-	return r
-}
-
-// GetNews ...
-func GetNews(id string) *News {
-	mutexNews.Lock()
-	defer mutexNews.Unlock()
-	for _, news := range newsStorage {
-		if news.ID == id {
-			n := news
-			return &n
-		}
+	s := mongoSession.Copy()
+	defer s.Close()
+	err := s.DB(database).C("news").Insert(&news)
+	if err != nil {
+		return err
 	}
 	return nil
 }
 
-// DeleteNews a a
-func DeleteNews(id string) {
-	mutexNews.Lock()
-	defer mutexNews.Unlock()
-	for i, news := range newsStorage {
-		if news.ID == id {
-			newsStorage = append(newsStorage[:i], newsStorage[i+1:]...)
-		}
+// ListNews ...
+func ListNews() ([]*News, error) {
+	s := mongoSession.Copy()
+	defer s.Close()
+	var news []*News
+	err := s.DB(database).C("news").Find(nil).All(&news)
+	if err != nil {
+		return nil, err
 	}
+	return news, nil
+}
+
+// GetNews ...
+func GetNews(id string) (*News, error) {
+	if !bson.IsObjectIdHex(id) {
+		return nil, fmt.Errorf("invalid id")
+	}
+	objectID := bson.ObjectIdHex(id)
+	s := mongoSession.Copy()
+	defer s.Close()
+	var n News
+	err := s.DB(database).C("news").FindId(objectID).One(&n)
+	if err != nil {
+		return nil, err
+	}
+	return &n, nil
+}
+
+// DeleteNews a a
+func DeleteNews(id string) error {
+	objectID := bson.ObjectId(id)
+	if !objectID.Valid() {
+		return fmt.Errorf("invalid id")
+	}
+	s := mongoSession.Copy()
+	defer s.Close()
+	err := s.DB(database).C("news").RemoveId(objectID)
+	if err != nil {
+		return err
+	}
+	return nil
 }

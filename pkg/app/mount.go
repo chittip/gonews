@@ -5,7 +5,12 @@ import "net/http"
 // Mount mounts handlers to mux
 func Mount(mux *http.ServeMux) {
 	mux.HandleFunc("/", index) // list all new
-	mux.HandleFunc("/news/", newsView)
+	//mux.HandleFunc("/news/", newsView)
+	mux.Handle("/news/", http.StripPrefix("/news", http.HandlerFunc(newsView)))
+	// mux.Handle("/news/", http.StripPrefix("/news", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	// 	id := r.URL.Path[1:]
+	// 	newsView(id).ServeHTTP(w, r)
+	// })))
 
 	adminMux := http.NewServeMux()
 	adminMux.HandleFunc("/login", adminLogin)

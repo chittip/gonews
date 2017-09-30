@@ -16,11 +16,18 @@ func adminLogin(w http.ResponseWriter, r *http.Request) {
 }
 
 func adminList(w http.ResponseWriter, r *http.Request) {
-
+	list, err := model.ListNews()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	view.AdminList(w, &view.AdminListData{
+		List: list,
+	})
 }
 
 func adminEdit(w http.ResponseWriter, r *http.Request) {
-
+	view.AdminEdit(w, nil)
 }
 
 func adminCreate(w http.ResponseWriter, r *http.Request) {
@@ -29,15 +36,11 @@ func adminCreate(w http.ResponseWriter, r *http.Request) {
 			Title:  r.FormValue("title"),
 			Detail: r.FormValue("detail"),
 		}
-		//r.ParseForm()
-		// -, -, err := r.FormFile("image")
-		// if err != nil {
-		// 	http.Error(w, err.Error(), http.StatusInternalServerError)
-		// 	log.Println("err")
-		// }
-		model.CreateNews(n)
-		// log.Println(title)
-		// log.Println(detail)
+		err := model.CreateNews(n)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 		http.Redirect(w, r, "/admin/create", http.StatusSeeOther)
 		return
 	}

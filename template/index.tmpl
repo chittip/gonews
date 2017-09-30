@@ -4,7 +4,7 @@
     <br>
     <ul>
     {{range .List}}
-    <li><a href="/news/{{.ID}}">{{.Title}}</li>
+    <li><a href="/news/{{.ID.Hex}}">{{.Title}}</li>
     {{end}}
 </div>
 {{end}}
